@@ -1,0 +1,93 @@
+import SwiftUI
+import ServiceManagement
+
+/// Settings window content
+struct SettingsView: View {
+    @AppStorage("launchAtLogin") private var launchAtLogin = true
+    @State private var loginItemError: String?
+
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Launch at Login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, newValue in
+                        updateLoginItem(enabled: newValue)
+                    }
+
+                if let error = loginItemError {
+                    Text(error)
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+            } header: {
+                Text("General")
+            }
+
+            Section {
+                LabeledContent("Data Locations") {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("~/.config/claude/projects/")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text("~/.claude/projects/")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                LabeledContent("Pricing Source") {
+                    Link("LiteLLM", destination: URL(string: "https://github.com/BerriAI/litellm")!)
+                        .font(.caption)
+                }
+            } header: {
+                Text("Data")
+            }
+
+            Section {
+                LabeledContent("Version") {
+                    Text("1.0.0")
+                        .foregroundStyle(.secondary)
+                }
+
+                Link("View on GitHub", destination: URL(string: "https://github.com/yourusername/ClaudeUsageTracker")!)
+            } header: {
+                Text("About")
+            }
+        }
+        .formStyle(.grouped)
+        .frame(width: 400, height: 300)
+        .onAppear {
+            // Sync with actual login item status
+            syncLoginItemStatus()
+        }
+    }
+
+    private func updateLoginItem(enabled: Bool) {
+        do {
+            if enabled {
+                try SMAppService.mainApp.register()
+            } else {
+                try SMAppService.mainApp.unregister()
+            }
+            loginItemError = nil
+        } catch {
+            loginItemError = "Failed to update: \(error.localizedDescription)"
+            // Revert the toggle
+            launchAtLogin = !enabled
+        }
+    }
+
+    private func syncLoginItemStatus() {
+        let status = SMAppService.mainApp.status
+        switch status {
+        case .enabled:
+            launchAtLogin = true
+        case .notRegistered, .notFound:
+            launchAtLogin = false
+        case .requiresApproval:
+            loginItemError = "Requires approval in System Settings > Login Items"
+        @unknown default:
+            break
+        }
+    }
+}
