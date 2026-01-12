@@ -4,7 +4,18 @@ import ServiceManagement
 /// Settings window content
 struct SettingsView: View {
     @AppStorage("launchAtLogin") private var launchAtLogin = true
+    @AppStorage("showCostInMenuBar") private var showCostInMenuBar = true
+    @AppStorage("costDecimalPlaces") private var costDecimalPlaces = 2
+    @AppStorage("autoRefreshInterval") private var autoRefreshInterval = 0  // 0 = file watcher only
     @State private var loginItemError: String?
+
+    private let refreshIntervalOptions = [
+        (0, "File changes only"),
+        (60, "Every minute"),
+        (300, "Every 5 minutes"),
+        (900, "Every 15 minutes"),
+        (1800, "Every 30 minutes")
+    ]
 
     var body: some View {
         Form {
@@ -21,6 +32,33 @@ struct SettingsView: View {
                 }
             } header: {
                 Text("General")
+            }
+
+            Section {
+                Toggle("Show Cost in Menu Bar", isOn: $showCostInMenuBar)
+
+                Picker("Cost Decimal Places", selection: $costDecimalPlaces) {
+                    Text("$1").tag(0)
+                    Text("$1.2").tag(1)
+                    Text("$1.23").tag(2)
+                    Text("$1.234").tag(3)
+                }
+            } header: {
+                Text("Display")
+            }
+
+            Section {
+                Picker("Auto-Refresh", selection: $autoRefreshInterval) {
+                    ForEach(refreshIntervalOptions, id: \.0) { interval, label in
+                        Text(label).tag(interval)
+                    }
+                }
+
+                Text("Data automatically refreshes when Claude logs change")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } header: {
+                Text("Refresh")
             }
 
             Section {
@@ -55,7 +93,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 400, height: 300)
+        .frame(width: 400, height: 380)
         .onAppear {
             // Sync with actual login item status
             syncLoginItemStatus()

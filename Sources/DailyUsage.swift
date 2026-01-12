@@ -1,5 +1,12 @@
 import Foundation
 
+/// Format a cost value respecting user's decimal places setting
+func formatCost(_ cost: Double) -> String {
+    let decimalPlaces = UserDefaults.standard.integer(forKey: "costDecimalPlaces")
+    let places = decimalPlaces == 0 ? 2 : decimalPlaces  // Default to 2 if not set
+    return String(format: "$%.\(places)f", cost)
+}
+
 /// Aggregated usage for a single day
 struct DailyUsage: Identifiable, Equatable {
     let id: String  // YYYY-MM-DD format
@@ -9,7 +16,7 @@ struct DailyUsage: Identifiable, Equatable {
     var modelBreakdowns: [ModelBreakdown]
 
     var formattedCost: String {
-        String(format: "$%.2f", totalCost)
+        formatCost(totalCost)
     }
 
     var formattedTokens: String {
@@ -34,7 +41,7 @@ struct MonthlyUsage: Identifiable, Equatable {
     var modelBreakdowns: [ModelBreakdown]
 
     var formattedCost: String {
-        String(format: "$%.2f", totalCost)
+        formatCost(totalCost)
     }
 
     var formattedMonth: String {
@@ -73,7 +80,7 @@ struct ModelBreakdown: Identifiable, Equatable {
     }
 
     var formattedCost: String {
-        String(format: "$%.2f", cost)
+        formatCost(cost)
     }
 }
 
