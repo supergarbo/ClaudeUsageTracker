@@ -36,15 +36,34 @@ class UsageViewModel {
     private let pricingService = PricingService.shared
     private let fileWatcher = FileWatcherService()
     private var refreshTask: Task<Void, Never>?
+    private var refreshTimer: Timer?
+    private var intervalObserver: NSObjectProtocol?
 
     // MARK: - Initialization
 
     init() {
         setupFileWatcher()
+        setupRefreshTimer()
+
+        // Observe changes to refresh interval setting
+        intervalObserver = NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.setupRefreshTimer()
+        }
 
         // Initial load
         Task {
             await refresh()
+        }
+    }
+
+    deinit {
+        refreshTimer?.invalidate()
+        if let observer = intervalObserver {
+            NotificationCenter.default.removeObserver(observer)
         }
     }
 
@@ -151,6 +170,20 @@ class UsageViewModel {
             }
         }
         fileWatcher.startWatching()
+    }
+
+    private func setupRefreshTimer() {
+        refreshTimer?.invalidate()
+
+        let interval = UserDefaults.standard.integer(forKey: "autoRefreshInterval")
+        // Default to 60 seconds if not set (0 means unset, use default)
+        let effectiveInterval = interval > 0 ? interval : 60
+
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(effectiveInterval), repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                await self?.refresh()
+            }
+        }
     }
 
     // MARK: - Helpers

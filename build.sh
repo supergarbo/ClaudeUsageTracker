@@ -16,6 +16,11 @@ mkdir -p "${APP_BUNDLE}/Contents/Resources"
 # Copy binary
 cp "${BUILD_DIR}/${APP_NAME}" "${APP_BUNDLE}/Contents/MacOS/"
 
+# Copy icon
+if [ -f "$(pwd)/AppIcon.icns" ]; then
+    cp "$(pwd)/AppIcon.icns" "${APP_BUNDLE}/Contents/Resources/"
+fi
+
 # Create Info.plist
 cat > "${APP_BUNDLE}/Contents/Info.plist" << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
@@ -48,6 +53,8 @@ cat > "${APP_BUNDLE}/Contents/Info.plist" << 'EOF'
     <true/>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
 </dict>
 </plist>
 EOF

@@ -201,7 +201,6 @@ struct InlineSettingsView: View {
                                 Text("0").tag(0)
                                 Text("1").tag(1)
                                 Text("2").tag(2)
-                                Text("3").tag(3)
                             }
                             .labelsHidden()
                             .frame(width: 60)

@@ -6,14 +6,12 @@ struct SettingsView: View {
     @AppStorage("launchAtLogin") private var launchAtLogin = true
     @AppStorage("showCostInMenuBar") private var showCostInMenuBar = true
     @AppStorage("costDecimalPlaces") private var costDecimalPlaces = 2
-    @AppStorage("autoRefreshInterval") private var autoRefreshInterval = 0  // 0 = file watcher only
+    @AppStorage("autoRefreshInterval") private var autoRefreshInterval = 60  // default: every minute
     @State private var loginItemError: String?
 
     private let refreshIntervalOptions = [
-        (0, "File changes only"),
+        (30, "Every 30 seconds"),
         (60, "Every minute"),
-        (300, "Every 5 minutes"),
-        (900, "Every 15 minutes"),
         (1800, "Every 30 minutes")
     ]
 
@@ -41,7 +39,6 @@ struct SettingsView: View {
                     Text("$1").tag(0)
                     Text("$1.2").tag(1)
                     Text("$1.23").tag(2)
-                    Text("$1.234").tag(3)
                 }
             } header: {
                 Text("Display")
@@ -54,7 +51,7 @@ struct SettingsView: View {
                     }
                 }
 
-                Text("Data automatically refreshes when Claude logs change")
+                Text("Data also refreshes when Claude logs change")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } header: {
